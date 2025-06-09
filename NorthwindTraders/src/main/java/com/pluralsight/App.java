@@ -20,25 +20,33 @@ public class App {
 
             // create statement
             // the statement is tied to the open connection
-            Statement statement = connection.createStatement();
-
-
-            // define your query
-            String query = "SELECT ProductName FROM products ";
+            PreparedStatement pStatement = connection.prepareStatement(
+                    "SELECT ProductID, ProductName, UnitPrice, UnitsInStock FROM products"
+            );
 
 
             // 2. Execute your query
-            ResultSet results = statement.executeQuery(query);
+            ResultSet results = pStatement.executeQuery();
 
 
             // process the results
             while (results.next()) {
-                String products = results.getString("ProductName");
-                System.out.println(products);
+                int ID = results.getInt("ProductID");
+                String name = results.getString("ProductName");
+                double price = results.getDouble("UnitPrice");
+                int stock = results.getInt("UnitsInStock");
+
+                System.out.println("Product ID: " + ID);
+                System.out.println("Product Name: " + name);
+                System.out.printf("Price: %.2f\n", price);
+                System.out.println("Units In Stock: " + stock);
+                System.out.println("-------------------------------------------------");
             }
 
 
             // 3. Close the connection
+            results.close();
+            pStatement.close();
             connection.close();
 
         } catch (SQLException e) {
