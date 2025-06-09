@@ -18,7 +18,7 @@ public class App {
 
 
             // define your query
-            String query = "SELECT * FROM products ";
+            String query = "SELECT ProductName FROM products ";
 
 
             // 2. Execute your query
