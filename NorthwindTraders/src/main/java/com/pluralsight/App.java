@@ -21,6 +21,9 @@ public class App {
                 case 2:
                     viewCustomer(connection);
                     break;
+                case 3:
+                    viewCategory(connection);
+                    break;
                 case 0:
                     System.out.println("Exiting the app");
                     homeRunning = false;
@@ -68,6 +71,7 @@ public class App {
         System.out.println("What do you want to do?");
         System.out.println("\t1) Display all products");
         System.out.println("\t2) Display all customers");
+        System.out.println("\t3) Display all category");
         System.out.println("\t0) Exit");
         System.out.println("Select an option");
         choice = myScanner.nextInt();
@@ -86,8 +90,8 @@ public class App {
             // the statement is tied to the open connection
             pStatement = connection.prepareStatement(
                     "SELECT " +
-                            "ProductID, ProductName, UnitPrice, UnitsInStock " +
-                            "FROM products "
+                    "ProductID, ProductName, UnitPrice, UnitsInStock " +
+                    "FROM products "
             );
 
 
@@ -140,9 +144,9 @@ public class App {
             // the statement is tied to the open connection
             pStatement = connection.prepareStatement(
                     "SELECT ContactName, CompanyName, City, Country, Phone " +
-                            "FROM customers " +
-                            "WHERE Country IS NOT NULL " +
-                            "ORDER BY Country "
+                    "FROM customers " +
+                    "WHERE Country IS NOT NULL " +
+                    "ORDER BY Country "
             );
 
 
@@ -185,6 +189,84 @@ public class App {
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    public static void viewCategory(Connection connection) {
+        try (
+                //Created query to get id and name
+                PreparedStatement pStatement = connection.prepareStatement(
+                        """
+                                SELECT
+                                    CategoryID,
+                                    CategoryName
+                                FROM
+                                    categories
+                                """);
+                //execute query and get result set
+                ResultSet results = pStatement.executeQuery();
+        ) {
+            //loop through and display all categories
+            while (results.next()) {
+                System.out.println("Category ID: " + results.getInt("CategoryID"));
+                System.out.println("Category Name: " + results.getString("CategoryName"));
+                System.out.println("-------------------------------------------------");
+            }
+            //ask user for category id to show products
+            System.out.println("Enter a category id to view products");
+            int userInput = myScanner.nextInt();
+            myScanner.nextLine();
+
+            //retrieve the name of selected category
+            String categoryName = null;
+            try (PreparedStatement categoryNameStatement = connection.prepareStatement(
+                    """
+                            SELECT
+                                CategoryName
+                            FROM
+                                categories
+                            WHERE
+                                CategoryID = ?
+                            """);
+            ) {
+                categoryNameStatement.setInt(1, userInput);
+                try (ResultSet cResult = categoryNameStatement.executeQuery()) {
+                    if (cResult.next()) {
+                        categoryName = cResult.getString("CategoryName");
+                    }
+                }
+            }
+            //retrieve all products under selected category
+            try (PreparedStatement productStatement = connection.prepareStatement(
+                    """
+                            SELECT
+                                ProductID,
+                                ProductName,
+                                UnitPrice,
+                                UnitsInStock
+                            FROM
+                                products P
+                            JOIN categories C
+                            ON P.CategoryID = C.CategoryID
+                            WHERE
+                                P.CategoryID = ?
+                            """);
+            ) {
+                productStatement.setInt(1, userInput);
+                try (ResultSet pResult = productStatement.executeQuery()) {
+                    System.out.println("Here are the products under " + categoryName + ":");
+                    while (pResult.next()) {
+                        System.out.println("Product ID: " + pResult.getInt("ProductID"));
+                        System.out.println("Product Name: " + pResult.getString("ProductName"));
+                        System.out.printf("Price: %.2f\n", pResult.getDouble("UnitPrice"));
+                        System.out.println("Units In Stock: " + pResult.getInt("UnitsInStock"));
+                        System.out.println("-------------------------------------------------");
+                    }
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }
