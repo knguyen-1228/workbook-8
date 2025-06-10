@@ -85,7 +85,9 @@ public class App {
             // create statement
             // the statement is tied to the open connection
             pStatement = connection.prepareStatement(
-                    "SELECT ProductID, ProductName, UnitPrice, UnitsInStock FROM products"
+                    "SELECT " +
+                            "ProductID, ProductName, UnitPrice, UnitsInStock " +
+                            "FROM products "
             );
 
 
@@ -137,7 +139,10 @@ public class App {
             // create statement
             // the statement is tied to the open connection
             pStatement = connection.prepareStatement(
-                    "SELECT ContactName, CompanyName, City, Country, Phone FROM customer"
+                    "SELECT ContactName, CompanyName, City, Country, Phone " +
+                            "FROM customers " +
+                            "WHERE Country IS NOT NULL " +
+                            "ORDER BY Country "
             );
 
 
